@@ -384,7 +384,8 @@ function bulletRows(it, i) {
     <span class="row-tools">
       <button class="icon-btn sm" type="button" data-bact="up" aria-label="เลื่อนรายละเอียดข้อ ${j + 1} ขึ้น" ${j ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-up"/></svg></button>
       <button class="icon-btn sm" type="button" data-bact="down" aria-label="เลื่อนรายละเอียดข้อ ${j + 1} ลง" ${j < n - 1 ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-down"/></svg></button>
-      <button class="icon-btn sm is-bad" type="button" data-bact="del" aria-label="ลบรายละเอียดข้อ ${j + 1}"><svg class="ic ic-16"><use href="#i-trash"/></svg></button></span></li>`).join('')
+      <button class="icon-btn sm is-bad" type="button" data-bact="del" aria-label="ลบรายละเอียดข้อ ${j + 1}"><svg class="ic ic-16"><use href="#i-trash"/></svg></button>
+      <button class="icon-btn sm row-more" type="button" data-bact="menu" aria-haspopup="menu" aria-expanded="false" aria-label="จัดการรายละเอียดข้อ ${j + 1}"><svg class="ic ic-16"><use href="#i-more"/></svg></button></span></li>`).join('')
     || '<li class="empty-items">ยังไม่มีรายละเอียด</li>';
 }
 function redrawBullets(itemEl, focusJ) {
@@ -551,18 +552,25 @@ $('items').addEventListener('keydown', e => {
   const itemEl = el.closest('.item'), it = DOC.items[+itemEl.dataset.i], j = +el.dataset.b;
   bullets_(it).splice(j + 1, 0, ''); redrawBullets(itemEl, j + 1);
 });
+async function bulletAct(itemEl, j, act) {
+  const it = DOC.items[+itemEl.dataset.i], list = bullets_(it);
+  if (act === 'del') { if (list[j].trim() && !await ask('ลบรายละเอียดข้อนี้?', list[j], 'ลบ', true)) return; list.splice(j, 1); }
+  if (act === 'up' && j) [list[j - 1], list[j]] = [list[j], list[j - 1]];
+  if (act === 'down' && j < list.length - 1) [list[j + 1], list[j]] = [list[j], list[j + 1]];
+  syncBullets(it); redrawBullets(itemEl); changed();
+  const k = act === 'up' ? j - 1 : act === 'down' ? j + 1 : -1, row = itemEl.querySelector(`.bullets [data-j="${k}"]`);
+  if (!row) return;
+  const btn = [row.querySelector(`[data-bact="${act}"]`), row.querySelector('[data-bact="menu"]')].find(x => x && x.offsetParent && !x.disabled);
+  if (btn) btn.focus();
+  row.classList.add('is-moved'); setTimeout(() => row.classList.remove('is-moved'), 600);
+}
 $('items').addEventListener('click', async e => {
   const bb = e.target.closest('[data-bact]');
   if (bb) {
     const itemEl = bb.closest('.item'), it = DOC.items[+itemEl.dataset.i], list = bullets_(it), act = bb.dataset.bact;
     if (act === 'add') { list.push(''); redrawBullets(itemEl, list.length - 1); return; }
     const j = +bb.closest('[data-j]').dataset.j;
-    if (act === 'del') { if (list[j].trim() && !await ask('ลบรายละเอียดข้อนี้?', list[j], 'ลบ', true)) return; list.splice(j, 1); }
-    if (act === 'up' && j) [list[j - 1], list[j]] = [list[j], list[j - 1]];
-    if (act === 'down' && j < list.length - 1) [list[j + 1], list[j]] = [list[j], list[j + 1]];
-    syncBullets(it); redrawBullets(itemEl); changed();
-    const k = act === 'up' ? j - 1 : act === 'down' ? j + 1 : -1, keep = itemEl.querySelector(`.bullets [data-j="${k}"] [data-bact="${act}"]`);
-    if (keep && !keep.disabled) keep.focus();
+    if (act === 'menu') openRowMenu(bb, j, list.length, a => bulletAct(itemEl, j, a)); else bulletAct(itemEl, j, act);
     return;
   }
   const b = e.target.closest('[data-act]'); if (!b) return;
@@ -604,7 +612,7 @@ document.querySelectorAll('.rows').forEach(box => {
   box.addEventListener('click', e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
     const i = +b.closest('.row').dataset.i;
-    if (b.dataset.act === 'menu') openRowMenu(kind, i, b); else rowAct(kind, i, b.dataset.act);
+    if (b.dataset.act === 'menu') openRowMenu(b, i, LISTS[kind].length, a => rowAct(kind, i, a)); else rowAct(kind, i, b.dataset.act);
   });
 });
 // เลื่อน / ลบ หนึ่งแถว แล้วให้โฟกัสตามแถวที่ย้ายไป (กดซ้ำต่อได้)
@@ -625,11 +633,11 @@ async function rowAct(kind, i, act) {
 }
 // จอแคบ: ปุ่ม ⋯ เปิดเมนู เลื่อนขึ้น / เลื่อนลง / ลบ (แทนปุ่ม 3 ปุ่มที่กินที่)
 let MENU = null;
-function openRowMenu(kind, i, btn) {
-  const m = $('rowMenu'), n = LISTS[kind].length;
+function openRowMenu(btn, i, n, pick) {
+  const m = $('rowMenu');
   if (MENU && MENU.btn === btn) return closeRowMenu();
   closeRowMenu();
-  MENU = { kind, i, btn };
+  MENU = { btn, pick, y: window.scrollY };
   m.querySelector('[data-menu=up]').disabled = i === 0;
   m.querySelector('[data-menu=down]').disabled = i >= n - 1;
   m.hidden = false;
@@ -649,16 +657,17 @@ function closeRowMenu(refocus) {
 }
 $('rowMenu').addEventListener('click', e => {
   const b = e.target.closest('[data-menu]'); if (!b || !MENU) return;
-  const { kind, i } = MENU; closeRowMenu();
-  rowAct(kind, i, b.dataset.menu);
+  const pick = MENU.pick; closeRowMenu();
+  pick(b.dataset.menu);
 });
 $('rowMenu').addEventListener('keydown', e => {
   const items = [...$('rowMenu').querySelectorAll('[data-menu]:not(:disabled)')], k = items.indexOf(document.activeElement);
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); items[(k + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus(); }
   if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); closeRowMenu(true); }
 });
-document.addEventListener('pointerdown', e => { if (MENU && !e.target.closest('#rowMenu') && !e.target.closest('[data-act=menu]')) closeRowMenu(); });
-window.addEventListener('scroll', () => closeRowMenu(), { passive: true });
+document.addEventListener('pointerdown', e => { if (MENU && !e.target.closest('#rowMenu') && !e.target.closest('[data-act=menu], [data-bact=menu]')) closeRowMenu(); });
+// ปิดเมื่อเลื่อนหน้าออกไปจริง (ไม่ปิดเพราะหน้ายังเลื่อนค้างอยู่ตอนแตะ)
+window.addEventListener('scroll', () => { if (MENU && Math.abs(window.scrollY - MENU.y) > 24) closeRowMenu(); }, { passive: true });
 window.addEventListener('resize', () => closeRowMenu());
 document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
   const kind = b.dataset.add;
