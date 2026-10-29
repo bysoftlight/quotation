@@ -70,10 +70,13 @@ const TEMPLATES = [
   { key: 'starter-m', label: 'Starter', note: 'รายเดือน' }, { key: 'business-m', label: 'Business', note: 'รายเดือน' }, { key: 'enterprise-m', label: 'Enterprise', note: 'รายเดือน' }
 ];
 function applyTemplate(key, tier) {
-  const reg = PRICES.regular, cur = PRICES[tier];
   const ex = tier === 'exclusive';
+  // Exclusive: "discount" = รายการใช้ราคาปกติแล้วหักส่วนลด · "net" = ใส่ราคา Exclusive ในรายการเลย (ไม่มีบรรทัดส่วนลด)
+  const net = ex && exMode() === 'net';
+  const reg = net ? PRICES[tier] : PRICES.regular, cur = PRICES[tier];
   const d = DOC;
   d.tpl = key + ':' + tier;
+  d.exMode = ex ? exMode() : '';
   d.badge = ex ? 'EXCLUSIVE' : '';
   d.discountType = 'amount';
   d.discountLabel = ex ? 'ส่วนลดพิเศษลูกค้า Exclusive' : 'ส่วนลดพิเศษ';
@@ -118,6 +121,16 @@ function applyTemplate(key, tier) {
       'ใบเสนอราคานี้มีผลถึงวันที่ระบุด้านบน'].join('\n');
   }
   if (!d.discount) d.discountLabel = 'ส่วนลดพิเศษ';
+}
+function exMode() { return S.exMode === 'net' ? 'net' : 'discount'; }
+// ราคาของแพ็กเกจ (ใช้บนการ์ด): ราคาหลัก + ราคาปกติ (ถ้าเป็น Exclusive) + ยอดรวมปีแรกตรงกับยอดในใบ
+function tplQuote(key, tier) {
+  const p = PRICES[tier], r = PRICES.regular, ex = tier === 'exclusive';
+  if (['basic', 'standard', 'pro'].includes(key)) return { main: p[key], was: ex ? r[key] : 0, unit: 'บาท', total: p[key], note: 'ชำระครั้งเดียว' };
+  const [plan, mode] = key.split('-');
+  const [m, setup] = p.sub[plan], [mr] = r.sub[plan];
+  const main = mode === 'y' ? m * 10 : m, was = ex ? (mode === 'y' ? mr * 10 : mr) : 0;
+  return { main, was, unit: mode === 'y' ? 'บาท/ปี' : 'บาท/เดือน', total: setup + (mode === 'y' ? m * 10 : m * 12), note: `+ ติดตั้ง ${money0(setup)}` };
 }
 
 // ===================== คำนวณ =====================
@@ -209,23 +222,26 @@ function countTo(el, value) {
 }
 
 // ===================== แสดงตัวอย่าง (A4) =====================
-const mark = (v, ph) => v ? esc(v).replace(/\n/g, '<br>') : `<span class="empty-mark">[${ph}]</span>`;
+// ช่องที่ไม่ได้กรอก: ไม่แสดงในใบเลย (ไม่เว้นบรรทัดว่าง ไม่มีข้อความแทน)
+const txt = v => v ? esc(String(v).trim()).replace(/\n/g, '<br>') : '';
+const join = parts => parts.filter(Boolean).join(' · ');
+const lines = arr => arr.filter(Boolean).join('<br>');
 const bullets = txt => { const l = String(txt || '').split('\n').map(s => s.trim()).filter(Boolean); return l.length ? `<ul>${l.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''; };
 const splitRows = txt => String(txt || '').split('\n').map(s => s.trim()).filter(Boolean).map(l => l.split('|').map(x => x.trim()));
 const validUntil = d => d.date ? new Date(new Date(d.date + 'T12:00:00+07:00').getTime() + (Number(d.validDays) || 0) * 864e5).toISOString().slice(0, 10) : '';
 
 function renderPaper() {
   const d = DOC, s = d.seller, c = d.customer, t = totals(d);
-  const sellerSub = [s.owner ? 'โดย ' + esc(s.owner) : '', s.taxId ? 'เลขประจำตัวผู้เสียภาษี ' + esc(s.taxId) : ''].filter(Boolean).join(' · ');
+  const sellerSub = s.owner ? 'โดย ' + esc(s.owner) : '';
   let h = `
   <header class="p-top">
-    <div class="p-brand"><img src="img/softlight-logo.png" alt=""><div><b>${mark(s.name, 'ชื่อทีม')}</b><small>${sellerSub}</small></div></div>
+    <div class="p-brand"><img src="img/softlight-logo.png" alt=""><div>${s.name ? `<b>${esc(s.name)}</b>` : ''}${sellerSub ? `<small>${sellerSub}</small>` : ''}</div></div>
     <div class="p-title"><span class="en">QUOTATION</span><h1>ใบเสนอราคา</h1>${d.badge ? `<span class="ex">${esc(d.badge)}</span>` : ''}
       <dl class="p-meta"><dt>เลขที่</dt><dd class="mono">${esc(d.no)}</dd><dt>วันที่</dt><dd>${thDate(d.date)}</dd><dt>ยืนราคาถึง</dt><dd>${thDate(validUntil(d))}</dd></dl></div>
   </header>
   <section class="p-parties">
-    <div class="p-box"><h3>เสนอต่อ (ลูกค้า)</h3>${mark(c.name, 'ชื่อบริษัทลูกค้า')}<br>${mark(c.addr, 'ที่อยู่')}${c.taxId ? '<br>เลขประจำตัวผู้เสียภาษี ' + esc(c.taxId) : ''}<br>เรียน ${mark(c.attn, 'ผู้ติดต่อ')}${c.contact ? ' · ' + esc(c.contact) : ''}</div>
-    <div class="p-box"><h3>ผู้เสนอราคา</h3>${esc(s.name)}${s.owner ? ' · ' + esc(s.owner) : ''}<br>${mark(s.addr, 'ที่อยู่')}<br>${mark(s.phone, 'เบอร์โทร')} · ${mark(s.email, 'อีเมล')}</div>
+    <div class="p-box"><h3>เสนอต่อ (ลูกค้า)</h3>${lines([c.name && `<b>${esc(c.name)}</b>`, txt(c.addr), c.taxId && 'เลขประจำตัวผู้เสียภาษี ' + esc(c.taxId), join([c.attn && 'เรียน ' + esc(c.attn), esc(c.contact)])])}</div>
+    <div class="p-box"><h3>ผู้เสนอราคา</h3>${lines([join([esc(s.name), esc(s.owner)]), txt(s.addr), s.taxId && 'เลขประจำตัวผู้เสียภาษี ' + esc(s.taxId), join([s.phone && 'โทร ' + esc(s.phone), esc(s.email)])])}</div>
   </section>
   <h2>${esc(d.title)}</h2>
   ${d.intro ? `<p class="lead">${esc(d.intro)}</p>` : ''}
@@ -314,19 +330,26 @@ function render() { renderPaper(); renderSummary(); }
 
 // ===================== แพ็กเกจสำเร็จรูป =====================
 let TIER = 'regular';
-function tplPrice(key, tier) {
-  const p = PRICES[tier];
-  if (['basic', 'standard', 'pro'].includes(key)) return `${money0(p[key])} บาท`;
-  const [plan, mode] = key.split('-');
-  const [m] = p.sub[plan];
-  return mode === 'y' ? `${money0(m * 10)} บาท/ปี` : `${money0(m)} บาท/เดือน`;
-}
 function renderTemplates() {
   const groups = [['ซื้อขาด', k => !k.includes('-'), 'once'], ['Subscription รายปี (จ่าย 10 ใช้ 12 เดือน)', k => k.endsWith('-y'), 'year'], ['Subscription รายเดือน', k => k.endsWith('-m'), 'month']];
+  const ex = TIER === 'exclusive';
   $('tplGrid').innerHTML = groups.map(([title, f, tone]) => `
     <div class="tpl-group"><h3>${title}</h3><div class="tpl-grid">
-      ${TEMPLATES.filter(t => f(t.key)).map(t => `<button class="tpl tone-${tone}${DOC && DOC.tpl === t.key + ':' + TIER ? ' is-on' : ''}" type="button" data-tpl="${t.key}" aria-pressed="${DOC && DOC.tpl === t.key + ':' + TIER}"><b>${t.label}</b><small class="mono">${tplPrice(t.key, TIER)}</small></button>`).join('')}
+      ${TEMPLATES.filter(t => f(t.key)).map(t => {
+        const q = tplQuote(t.key, TIER), on = DOC && DOC.tpl === t.key + ':' + TIER;
+        return `<button class="tpl tone-${tone}${on ? ' is-on' : ''}" type="button" data-tpl="${t.key}" aria-pressed="${on}">
+          <b>${t.label}</b>
+          <span class="tpl-price"><span class="mono">${money0(q.main)}</span> <small>${q.unit}</small></span>
+          ${q.was ? `<s class="tpl-was mono">${money0(q.was)}</s>` : ''}
+          <small class="tpl-total">${t.key.includes('-') ? `${q.note} · ปีแรก <span class="mono">${money0(q.total)}</span>` : q.note}</small>
+        </button>`; }).join('')}
     </div></div>`).join('');
+  $('exModeRow').hidden = !ex;
+  $('exMode').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.mode === exMode())));
+  $('tplHint').textContent = ex
+    ? (exMode() === 'net' ? 'ใบจะแสดงราคา Exclusive ในรายการโดยตรง (ไม่มีบรรทัดส่วนลด)' : 'ใบจะแสดงราคาปกติ แล้วหักส่วนต่างเป็น "ส่วนลดพิเศษลูกค้า Exclusive" · ยอดสุทธิเท่ากับราคาบนการ์ด')
+      + ' · ราคาปีแรก = ค่าติดตั้ง + ค่าบริการ 12 เดือน'
+    : 'กดแล้วจะเติมรายการ เงื่อนไข และบริการเสริม · ข้อมูลลูกค้าและผู้เสนอราคาคงเดิม';
 }
 
 // ===================== ฟอร์ม =====================
@@ -349,6 +372,28 @@ function fillForm() {
   const sl = DOC.seller;
   if (!sl.addr || !sl.phone || !sl.email) $('sellerCard').open = true; // ข้อมูลผู้เสนอราคายังไม่ครบ: เปิดไว้ให้เห็น
 }
+// รายละเอียดของแต่ละรายการ: แก้ทีละข้อ (เก็บใน it.d เป็นบรรทัดละข้อเหมือนเดิม)
+// ข้อที่ยังว่างอยู่ระหว่างพิมพ์เก็บไว้ใน BUL (ไม่บันทึก) เพื่อไม่ให้หายเมื่อวาดใหม่
+const BUL = new WeakMap();
+function bullets_(it) { if (!BUL.has(it)) BUL.set(it, String(it.d || '').split('\n').map(x => x.trim()).filter(Boolean)); return BUL.get(it); }
+function syncBullets(it) { it.d = bullets_(it).map(x => x.trim()).filter(Boolean).join('\n'); }
+function bulletRows(it, i) {
+  const b = bullets_(it), n = b.length;
+  return b.map((t, j) => `<li class="row row-term" data-j="${j}"><span class="row-no">•</span>
+    <textarea class="input grow" rows="1" data-b="${j}" aria-label="รายละเอียดข้อ ${j + 1} ของรายการที่ ${i + 1}" placeholder="รายละเอียด">${esc(t)}</textarea>
+    <span class="row-tools">
+      <button class="icon-btn sm" type="button" data-bact="up" aria-label="เลื่อนรายละเอียดข้อ ${j + 1} ขึ้น" ${j ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-up"/></svg></button>
+      <button class="icon-btn sm" type="button" data-bact="down" aria-label="เลื่อนรายละเอียดข้อ ${j + 1} ลง" ${j < n - 1 ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-down"/></svg></button>
+      <button class="icon-btn sm is-bad" type="button" data-bact="del" aria-label="ลบรายละเอียดข้อ ${j + 1}"><svg class="ic ic-16"><use href="#i-trash"/></svg></button></span></li>`).join('')
+    || '<li class="empty-items">ยังไม่มีรายละเอียด</li>';
+}
+function redrawBullets(itemEl, focusJ) {
+  const i = +itemEl.dataset.i, it = DOC.items[i];
+  itemEl.querySelector('.bullets').innerHTML = bulletRows(it, i);
+  itemEl.querySelectorAll('.bullets textarea.grow').forEach(autoGrow);
+  if (focusJ !== undefined) { const t = itemEl.querySelector(`.bullets [data-b="${focusJ}"]`); if (t) t.focus(); }
+}
+
 function itemAmount(it) { return (Number(it.qty) || 0) * (Number(it.price) || 0); }
 function renderItems() {
   $('items').innerHTML = DOC.items.map((it, i) => `
@@ -358,13 +403,15 @@ function renderItems() {
         <button class="icon-btn sm" type="button" data-act="down" aria-label="เลื่อนรายการที่ ${i + 1} ลง" ${i < DOC.items.length - 1 ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-down"/></svg></button>
         <button class="icon-btn sm is-bad" type="button" data-act="del" aria-label="ลบรายการที่ ${i + 1}"><svg class="ic ic-16"><use href="#i-trash"/></svg></button></div>
       <label class="f"><span>ชื่อรายการ</span><input class="input" data-f="t" value="${esc(it.t)}"></label>
-      <label class="f"><span>รายละเอียด (บรรทัดละข้อ)</span><textarea class="input" rows="3" data-f="d">${esc(it.d)}</textarea></label>
+      <div class="f"><span>รายละเอียด</span><ul class="rows bullets">${bulletRows(it, i)}</ul>
+        <button class="btn btn-chip add-row" type="button" data-bact="add"><svg class="ic ic-16"><use href="#i-plus"/></svg>เพิ่มรายละเอียด</button></div>
       <div class="nums">
         <label class="f"><span>จำนวน</span><input class="input" type="number" min="0" step="any" inputmode="decimal" data-f="qty" value="${esc(it.qty)}"></label>
         <label class="f"><span>หน่วย</span><input class="input" data-f="unit" value="${esc(it.unit || '')}"></label>
         <label class="f"><span>ราคา/หน่วย (บาท)</span><input class="input" type="number" min="0" step="any" inputmode="decimal" data-f="price" value="${esc(it.price)}"></label>
       </div>
     </div>`).join('') || '<p class="empty-items">ยังไม่มีรายการ — เลือกแพ็กเกจด้านบน หรือกด "เพิ่มรายการ"</p>';
+  $('items').querySelectorAll('textarea.grow').forEach(autoGrow);
 }
 
 // ===================== รายการย่อย: บริการ · ฟังก์ชันเสริม · เงื่อนไข =====================
@@ -489,7 +536,34 @@ document.addEventListener('input', e => {
   }
 });
 document.addEventListener('change', e => { if (e.target.type === 'checkbox' || e.target.tagName === 'SELECT') e.target.dispatchEvent(new Event('input', { bubbles: true })); });
+$('items').addEventListener('input', e => {
+  const el = e.target; if (el.dataset.b === undefined) return;
+  e.stopPropagation();
+  if (el.value.includes('\n')) el.value = el.value.replace(/\n+/g, ' ');
+  const it = DOC.items[+el.closest('.item').dataset.i];
+  bullets_(it)[+el.dataset.b] = el.value; autoGrow(el);
+  syncBullets(it); changed();
+});
+$('items').addEventListener('keydown', e => {
+  const el = e.target; if (el.dataset.b === undefined || e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+  e.preventDefault();
+  const itemEl = el.closest('.item'), it = DOC.items[+itemEl.dataset.i], j = +el.dataset.b;
+  bullets_(it).splice(j + 1, 0, ''); redrawBullets(itemEl, j + 1);
+});
 $('items').addEventListener('click', async e => {
+  const bb = e.target.closest('[data-bact]');
+  if (bb) {
+    const itemEl = bb.closest('.item'), it = DOC.items[+itemEl.dataset.i], list = bullets_(it), act = bb.dataset.bact;
+    if (act === 'add') { list.push(''); redrawBullets(itemEl, list.length - 1); return; }
+    const j = +bb.closest('[data-j]').dataset.j;
+    if (act === 'del') { if (list[j].trim() && !await ask('ลบรายละเอียดข้อนี้?', list[j], 'ลบ', true)) return; list.splice(j, 1); }
+    if (act === 'up' && j) [list[j - 1], list[j]] = [list[j], list[j - 1]];
+    if (act === 'down' && j < list.length - 1) [list[j + 1], list[j]] = [list[j], list[j + 1]];
+    syncBullets(it); redrawBullets(itemEl); changed();
+    const k = act === 'up' ? j - 1 : act === 'down' ? j + 1 : -1, keep = itemEl.querySelector(`.bullets [data-j="${k}"] [data-bact="${act}"]`);
+    if (keep && !keep.disabled) keep.focus();
+    return;
+  }
   const b = e.target.closest('[data-act]'); if (!b) return;
   const i = +b.closest('.item').dataset.i, it = DOC.items;
   if (b.dataset.act === 'del') {
@@ -558,6 +632,14 @@ $('priceTier').addEventListener('click', e => {
   TIER = b.dataset.tier;
   $('priceTier').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
   renderTemplates();
+});
+$('exMode').addEventListener('click', async e => {
+  const b = e.target.closest('[data-mode]'); if (!b || b.dataset.mode === exMode()) return;
+  S.exMode = b.dataset.mode; saveStore(); renderTemplates();
+  // ใบนี้ใช้แพ็กเกจ Exclusive อยู่: ใช้แพ็กเกจเดิมใหม่ด้วยวิธีแสดงราคาใหม่
+  if (DOC.tpl && DOC.tpl.endsWith(':exclusive') && await ask('ใช้กับใบนี้ด้วย?', 'จะเติมแพ็กเกจเดิมใหม่ด้วยวิธีแสดงราคาที่เลือก (รายการ เงื่อนไข และส่วนลดที่แก้ไว้จะถูกแทนที่)', 'ใช้กับใบนี้')) {
+    applyTemplate(DOC.tpl.split(':')[0], 'exclusive'); fillForm(); changed(); toast('ปรับวิธีแสดงราคาแล้ว');
+  }
 });
 $('tplGrid').addEventListener('click', async e => {
   const b = e.target.closest('[data-tpl]'); if (!b) return;

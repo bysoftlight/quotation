@@ -15,7 +15,7 @@
   // ใส่ธีมก่อนหน้าแสดง (ไม่กะพริบขาวในโหมดมืด)
   try { const t = localStorage.getItem('softlight-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
-<link rel="stylesheet" href="css/app.css?v=2.1.0">
+<link rel="stylesheet" href="css/app.css?v=2.2.0">
 </head>
 <body data-tab="edit">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -73,8 +73,12 @@
             <span class="hint">ระดับราคา</span>
             <div class="seg" id="priceTier" role="group" aria-label="ระดับราคา"><button type="button" data-tier="regular" aria-pressed="true">ปกติ</button><button type="button" data-tier="exclusive" aria-pressed="false">Exclusive</button></div>
           </div>
+          <div class="toggle-row" id="exModeRow" hidden>
+            <span class="hint">ราคา Exclusive ในใบ</span>
+            <div class="seg" id="exMode" role="group" aria-label="วิธีแสดงราคา Exclusive ในใบ"><button type="button" data-mode="discount" aria-pressed="true">หักเป็นส่วนลด</button><button type="button" data-mode="net" aria-pressed="false">ราคาสุทธิ</button></div>
+          </div>
           <div id="tplGrid"></div>
-          <p class="hint">ข้อมูลลูกค้าและผู้เสนอราคาคงเดิม · Exclusive แสดงราคาปกติแล้วหักเป็นส่วนลด</p>
+          <p class="hint" id="tplHint"></p>
         </div>
       </details>
 
@@ -191,6 +195,6 @@
 <input type="file" accept=".json,application/json" id="fileImport" hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/app.js?v=2.1.0"></script>
+<script src="js/app.js?v=2.2.0"></script>
 </body>
 </html>
