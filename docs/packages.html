@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แพ็กเกจ HR Paper Mill</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Code:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* แพ็กเกจและราคา A4 — สี/ฟอนต์ Google Blog ชุดเดียวกับเว็บและใบเสนอราคา */
+  :root { --ground:#F0F4F9; --surface:#fff; --field:#F8FAFD; --line:#DDE3EA; --ink:#1F1F1F; --ink2:#3C4043; --muted:#5F6368;
+          --accent:#0B57D0; --accent-soft:#D3E3FD; --ok:#146C2E; --ok-soft:#C4EED0; --warn:#8A5A00; --warn-soft:#FDF3DC; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  @page { size: A4; margin: 13mm 13mm 15mm; }
+  body { font: 9.5pt/1.5 'Google Sans', 'Noto Sans Thai', sans-serif; color: var(--ink); background: #d9d6ce; }
+  .mono { font-family: 'Google Sans Code', 'Google Sans', monospace; }
+  .sheet { width: 210mm; margin: 12px auto; background: var(--surface); padding: 13mm; }
+  @media print { body { background: #fff; } .sheet { width: auto; margin: 0; padding: 0; } .no-print { display: none !important; } }
+  @media screen and (max-width: 820px) { .sheet { width: auto; margin: 0; padding: 18px 16px; } .plans { grid-template-columns: 1fr !important; } .cmp-wrap { overflow-x: auto; } }
+
+  header.top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
+  .brand { display: flex; gap: 10px; align-items: center; }
+  .logo { width: 40px; height: 40px; border-radius: 10px; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 20px; flex: none; }
+  .brand b { font-size: 12pt; display: block; }
+  .muted { color: var(--muted); }
+  .title { text-align: right; }
+  .title h1 { font-size: 19pt; line-height: 1.1; }
+  .title small { color: var(--muted); }
+  .lead { margin-top: 12px; color: var(--ink2); }
+
+  h2 { font-size: 12.5pt; margin: 12px 0 2px; break-after: avoid; }
+  .includes { margin: 0 0 8px; font-size: 8.8pt; color: var(--ink2); }
+  .includes b { color: var(--ok); }
+  h2 + p { color: var(--muted); margin-bottom: 8px; font-size: 9pt; }
+  .plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; break-inside: avoid; }
+  .plan { border: 1px solid var(--line); border-radius: 12px; padding: 10px 11px; display: flex; flex-direction: column; gap: 4px; min-width: 0; background: var(--surface); }
+  .plan.hot { border: 2px solid var(--accent); background: linear-gradient(var(--accent-soft), #fff 38%); }
+  .plan .badge { align-self: flex-start; font-size: 7.5pt; font-weight: 700; color: #fff; background: var(--accent); border-radius: 999px; padding: 1px 8px; }
+  .plan .badge.ghost { color: var(--muted); background: var(--field); border: 1px solid var(--line); }
+  .plan h3 { font-size: 13pt; }
+  .plan .for { color: var(--muted); font-size: 8.3pt; }
+  .price { font-family: 'Google Sans Code', 'Google Sans', monospace; font-size: 17pt; font-weight: 600; line-height: 1.1; }
+  .price small { font-family: 'Google Sans', 'Noto Sans Thai', sans-serif; font-size: 8.5pt; font-weight: 500; color: var(--muted); }
+  .sub { font-size: 8.5pt; color: var(--ink2); }
+  .plan ul { list-style: none; display: grid; gap: 1px; font-size: 8.5pt; line-height: 1.4; margin-top: 2px; }
+  .plan li { padding-left: 16px; position: relative; }
+  .plan li::before { content: '✓'; position: absolute; left: 0; color: var(--ok); font-weight: 700; }
+  .plan li.plus::before { content: '+'; color: var(--accent); }
+  .plan .foot { margin-top: auto; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 8.3pt; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 8.3pt; font-weight: 600; color: var(--muted); padding: 5px 6px; border-bottom: 1.5px solid var(--ink); text-align: center; }
+  th:first-child { text-align: left; }
+  td { padding: 3px 6px; border-bottom: 1px solid var(--line); text-align: center; font-size: 8.4pt; line-height: 1.35; }
+  td:first-child { text-align: left; }
+  tr { break-inside: avoid; }
+  tr.group td { background: var(--field); font-weight: 700; font-size: 8.5pt; color: var(--ink2); }
+  th.hot, td.hot { background: var(--accent-soft); }
+  .y { color: var(--ok); font-weight: 700; }
+  .n { color: #B9B3A6; }
+  .note { margin-top: 10px; display: grid; gap: 4px; font-size: 8.8pt; color: var(--ink2); }
+  .callout { border-radius: 10px; padding: 10px 12px; background: var(--warn-soft); color: var(--ink2); font-size: 8.8pt; break-inside: avoid; }
+  .callout b { color: var(--warn); }
+  .kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; break-inside: avoid; }
+  .kv > div { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--field); }
+  .kv h4 { font-size: 9.5pt; margin-bottom: 3px; }
+  .kv ul { padding-left: 16px; font-size: 8.8pt; color: var(--ink2); }
+  .page-break { break-before: page; }
+  .toolbar { position: sticky; top: 0; z-index: 2; display: flex; gap: 8px; justify-content: center; padding: 8px; background: rgba(243,241,236,.92); border-bottom: 1px solid var(--line); }
+  .toolbar button { font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 8px 16px; background: var(--accent); color: #fff; cursor: pointer; }
+
+  /* Google Blog look */
+  body { background: #F0F4F9; }
+  @media print { body { background: #fff; } }
+  .sheet { border-radius: 28px; box-shadow: 0 1px 3px rgba(60,64,67,.15); }
+  @media print { .sheet { border-radius: 0; box-shadow: none; } }
+  @media screen and (max-width: 820px) { .sheet { border-radius: 0; } }
+  header.top { position: relative; border-bottom: 0; padding-top: 12px; }
+  header.top::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 4px;
+    background: #111; }
+  header.top::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--line); }
+  .logo { background: none; border-radius: 0; object-fit: contain; }
+  h1, h2, h3, h4 { font-weight: 500; letter-spacing: -.01em; }
+  .title h1, .doc-title h1 { font-weight: 400; font-size: 24pt; letter-spacing: -.02em; }
+  th { border-bottom: 0; background: #F0F4F9; color: #444746; font-weight: 500; }
+  th:first-child { border-radius: 10px 0 0 10px; } th:last-child { border-radius: 0 10px 10px 0; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .box, .kv > div { border: 0; background: #F8FAFD; border-radius: 16px; }
+  .plan { border-radius: 20px; border-color: var(--line); }
+  .plan.hot { border: 2px solid var(--accent); background: linear-gradient(#E8F0FE, #fff 40%); }
+  .callout { border-radius: 16px; }
+  .toolbar { background: rgba(255,255,255,.92); border-bottom-color: var(--line); backdrop-filter: blur(12px); }
+  .toolbar button { border-radius: 999px; font-weight: 500; padding: 10px 22px; }
+  .totals tr.grand td { border-top: 0; background: #E8F0FE; color: #041E49; }
+  .totals tr.grand td:first-child { border-radius: 12px 0 0 12px; } .totals tr.grand td:last-child { border-radius: 0 12px 12px 0; }
+</style>
+</head>
+<body>
+<div class="toolbar no-print"><button onclick="window.print()">พิมพ์ / บันทึกเป็น PDF</button></div>
+<main class="sheet">
+  <header class="top">
+    <div class="brand"><img class="logo" src="data:image/png;base64,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" alt="softlight"><div><b>HR Paper Mill</b><span class="muted" id="seller"></span></div></div>
+    <div class="title"><h1>แพ็กเกจและราคา</h1><small id="dateLine"></small></div>
+  </header>
+  <p class="lead">ระบบส่งรายงานการขายประจำวันสำหรับโครงการใช้สิทธิ์สัมปทานผู้พิการตามมาตรา 35 พร้อม Dashboard สำหรับ HR
+    ใช้ได้ทั้งมือถือ แท็บเล็ต และคอมพิวเตอร์ เลือกได้ทั้ง <b>ซื้อขาด</b> (เป็นเจ้าของระบบ) หรือ <b>รายเดือน</b> (ไม่ต้องลงทุนก้อนใหญ่ เราดูแลให้ทั้งหมด)</p>
+
+  <h2>ซื้อขาด — เป็นเจ้าของระบบ</h2>
+  <p>ชำระครั้งเดียว ระบบและข้อมูลอยู่ในบัญชี Google ของลูกค้า ไม่มีค่าเซิร์ฟเวอร์รายเดือน · ราคาสุทธิ ไม่มี VAT</p>
+  <section class="plans" id="oneTime"></section>
+
+  <h2>Subscription — รายเดือน</h2>
+  <p>ไม่ต้องลงทุนก้อนใหญ่ รวมการดูแลระบบ อัปเดตฟังก์ชันใหม่ และสำรองข้อมูลตลอดสัญญา · ราคาสุทธิ ไม่มี VAT</p>
+  <p class="includes" id="subIncludes"></p>
+  <section class="plans" id="subs"></section>
+
+  <div class="page-break"></div>
+  <h2>เปรียบเทียบฟังก์ชัน</h2>
+  <p>Subscription แต่ละระดับมีฟังก์ชันเท่ากับแพ็กเกจซื้อขาดในคอลัมน์เดียวกัน (Starter = Basic · Business = Standard · Enterprise = Pro)</p>
+  <div class="cmp-wrap"><table id="cmp"></table></div>
+
+  <div class="page-break"></div>
+  <h2>เลือกแบบไหนดี</h2>
+  <p>เปรียบเทียบค่าใช้จ่ายรวม ระดับ Standard / Business</p>
+  <table id="tco"></table>
+  <div class="note" id="tcoNote"></div>
+
+  <h2>ฟังก์ชันเสริม (ซื้อขาด)</h2>
+  <p>เพิ่มให้ Basic หรือ Standard ได้ภายหลัง · Pro และ Enterprise มีครบแล้ว</p>
+  <table id="addons"></table>
+
+  <h2>เงื่อนไข</h2>
+  <section class="kv">
+    <div><h4>ซื้อขาด</h4><ul id="termsOne"></ul></div>
+    <div><h4>Subscription</h4><ul id="termsSub"></ul></div>
+  </section>
+  <p class="callout" style="margin-top:10px"><b>ทดลองใช้ฟรี 14 วัน</b> ทุกแพ็กเกจ พร้อมข้อมูลตัวอย่าง · ราคานี้มีผลถึง <span id="validLine"></span> · ขอใบเสนอราคาตามแพ็กเกจที่เลือกได้ที่ <span id="contact"></span></p>
+</main>
+
+<script>
+// ===== แก้ราคา/รายละเอียดแพ็กเกจที่นี่ =====
+const P = {
+  seller: 'softlight (Oannob Aphairun)',
+  contact: '[ชื่อผู้ติดต่อ] · [เบอร์โทร] · [อีเมล]',
+  date: '2026-10-28', validDays: 30,
+  oneTime: [
+    { id: 'basic', name: 'Basic', for: 'เริ่มต้นใช้งาน โครงการขนาดเล็ก', price: 39000,
+      limit: 'ผู้ใช้สิทธิ์ไม่เกิน 50 คน · เจ้าหน้าที่ 3 บัญชี',
+      feats: ['แอปส่งรายงาน: GPS · ประเภทการขาย · ถ่ายรูปหลักฐาน', 'ประวัติและรายงาน PDF รายเดือน (ผู้ใช้สิทธิ์)', 'Dashboard ภาพรวมวันนี้ + รายชื่อยังไม่ส่ง', 'รายงานพร้อมตัวกรอง · ส่งออก Excel', 'จัดการผู้ใช้สิทธิ์ (เพิ่ม/แก้ไข)', 'เข้าสู่ระบบด้วย Google'],
+      foot: 'ติดตั้ง + อบรม 1 ชม. · รับประกัน 30 วัน' },
+    { id: 'standard', name: 'Standard', for: 'ครบทุกฟังก์ชันของระบบปัจจุบัน', price: 89000, hot: 'แนะนำ',
+      limit: 'ผู้ใช้สิทธิ์ไม่เกิน 200 คน · เจ้าหน้าที่ไม่จำกัด',
+      feats: ['ทุกอย่างใน Basic', 'แผนที่ · ตรวจตำแหน่งผิดปกติ · อัปเดตสด', 'แก้ไข/เพิ่ม/ลบรายงาน (มีเหตุผล กู้คืนได้)', 'รูปโปรไฟล์ · เปลี่ยนรหัส/ลบผู้ใช้สิทธิ์', 'Google + LINE Login · อนุมัติบัญชี · สิทธิ์รายบทบาท', 'Log ทุกการกระทำ', 'ส่งออก PDF · Excel · Google Sheets · สรุปทางอีเมล'],
+      foot: 'ย้ายข้อมูลเดิม + อบรม 3 ชม. · รับประกัน 90 วัน' },
+    { id: 'pro', name: 'Pro', for: 'องค์กรใหญ่ ต้องการระบบอัตโนมัติเต็มรูปแบบ', price: 149000,
+      limit: 'ผู้ใช้สิทธิ์ไม่จำกัด · เจ้าหน้าที่ไม่จำกัด',
+      feats: ['ทุกอย่างใน Standard', 'plus:แจ้งเตือนผู้ที่ยังไม่ส่งทาง LINE', 'plus:โหมดตรวจรูป/อนุมัติรายงาน · ตรวจรูปซ้ำ', 'plus:ส่งได้แม้สัญญาณหลุด · ติดตั้งเป็นแอป', 'plus:โหมดอ่านง่ายสำหรับผู้พิการ', 'plus:กล้องพร้อมกรอบนำถ่าย · ประทับเวลา/พิกัด', 'plus:แยกข้อมูลรายเดือน · ระบบทดสอบแยก · โดเมนบริษัท', 'plus:ดูแลระบบ (MA) ปีแรก'],
+      foot: 'อบรม 2 ครั้ง · รับประกัน 180 วัน' }
+  ],
+  subs: [
+    { id: 'basic', name: 'Starter', for: 'ฟังก์ชันเท่า Basic', monthly: 1900, setup: 5000, limit: 'ผู้ใช้สิทธิ์ไม่เกิน 50 คน' },
+    { id: 'standard', name: 'Business', for: 'ฟังก์ชันเท่า Standard', monthly: 3500, setup: 9900, limit: 'ผู้ใช้สิทธิ์ไม่เกิน 200 คน', hot: 'นิยม' },
+    { id: 'pro', name: 'Enterprise', for: 'ฟังก์ชันเท่า Pro', monthly: 5900, setup: 14900, limit: 'ผู้ใช้สิทธิ์ไม่จำกัด' }
+  ],
+  subIncludes: ['ดูแลระบบและแก้ไขข้อผิดพลาด', 'อัปเดตฟังก์ชันใหม่ตามระดับแพ็กเกจ', 'สำรองข้อมูลรายสัปดาห์ · ตรวจสุขภาพระบบทุกวัน', 'ช่วยเหลือผ่าน LINE/โทร ในวันทำการ'],
+  annualMonthsPaid: 10, // จ่ายรายปี: จ่าย 10 เดือน ใช้ 12 เดือน
+  // ตารางเปรียบเทียบ: [ชื่อ, basic, standard, pro] — true/false หรือข้อความ
+  compare: [
+    ['group', 'ผู้ใช้สิทธิ์ (แอปส่งรายงาน)'],
+    ['เข้าสู่ระบบด้วยรหัส 6 หลัก · จดจำการเข้าระบบ', true, true, true],
+    ['GPS · ประเภทการขาย (โควตาตัวแทน 10 ครั้ง/เดือน) · รูปหลักฐานย่ออัตโนมัติ', true, true, true],
+    ['ประวัติ · ขยาย/ดาวน์โหลดรูป · ลิงก์แผนที่ · PDF รายเดือน', true, true, true],
+    ['ส่งได้แม้สัญญาณหลุด · ติดตั้งเป็นแอป', false, false, true],
+    ['โหมดอ่านง่าย (ตัวใหญ่ · สีชัด · อ่านออกเสียง)', false, false, true],
+    ['กล้องพร้อมกรอบนำถ่าย · ประทับวันเวลา/พิกัดบนรูป', false, false, true],
+    ['group', 'Dashboard เจ้าหน้าที่'],
+    ['ภาพรวมวันนี้ · รายชื่อยังไม่ส่ง + ปุ่มโทร', true, true, true],
+    ['ตัวกรองบุคคล/วัน/เดือน/ปี/ประเภท/จุดขาย', true, true, true],
+    ['แนวโน้ม 30 วัน · เฝ้าระวังโควตา · แผนที่ · ตำแหน่งผิดปกติ', false, true, true],
+    ['อัปเดตสด (ไม่ต้องรีเฟรช)', false, true, true],
+    ['เพิ่ม/แก้ไข/ลบรายงาน (มีเหตุผล กู้คืนได้)', false, true, true],
+    ['จัดการผู้ใช้สิทธิ์: เพิ่ม/แก้ไข', true, true, true],
+    ['รูปโปรไฟล์ · เปลี่ยนรหัส · ลบบัญชี · ปฏิทินการส่ง', false, true, true],
+    ['โหมดตรวจรูป/อนุมัติรายงาน · ตรวจรูปซ้ำ', false, false, true],
+    ['group', 'บัญชี สิทธิ์ และความปลอดภัย'],
+    ['เข้าสู่ระบบด้วย Google', true, true, true],
+    ['เข้าสู่ระบบด้วย LINE', false, true, true],
+    ['อนุมัติบัญชีใหม่ · บทบาท Viewer/Editor/Admin · สิทธิ์รายข้อ', false, true, true],
+    ['Log ทุกการกระทำ · บังคับออก/ระงับบัญชีทันที', false, true, true],
+    ['group', 'ส่งออกและแจ้งเตือน'],
+    ['ส่งออก Excel', true, true, true],
+    ['ส่งออก PDF · Google Sheets · สรุปรายวันทางอีเมล', false, true, true],
+    ['แจ้งเตือนผู้ที่ยังไม่ส่งทาง LINE · แจ้งทีมเมื่อผิดปกติ', false, false, true],
+    ['group', 'รองรับการขยาย'],
+    ['จำนวนผู้ใช้สิทธิ์', '50', '200', 'ไม่จำกัด'],
+    ['บัญชีเจ้าหน้าที่', '3', 'ไม่จำกัด', 'ไม่จำกัด'],
+    ['แยกข้อมูลรายเดือน (เร็วคงที่เมื่อข้อมูลหลายปี)', false, false, true],
+    ['ระบบทดสอบแยกจากระบบจริง · โดเมนบริษัท', false, false, true],
+    ['group', 'บริการ'],
+    ['ย้ายข้อมูลเดิม', false, true, true],
+    ['อบรมการใช้งาน', '1 ชม.', '3 ชม.', '2 ครั้ง'],
+    ['รับประกันผลงาน (ซื้อขาด)', '30 วัน', '90 วัน', '180 วัน'],
+    ['ดูแลระบบ (MA)', 'ซื้อเพิ่ม', 'ซื้อเพิ่ม', 'ฟรีปีแรก']
+  ],
+  ma: 24000, // ดูแลระบบรายปี (ซื้อขาด)
+  addons: [
+    ['แจ้งเตือนผู้ที่ยังไม่ส่งรายงานทาง LINE', 15000],
+    ['ส่งรายงานได้แม้สัญญาณหลุด + ติดตั้งเป็นแอป', 12000],
+    ['โหมดตรวจรูปและอนุมัติรายงาน · ตรวจรูปซ้ำ', 12000],
+    ['แยกเก็บข้อมูลรายเดือน', 9000],
+    ['กล้องพร้อมกรอบนำถ่าย + ประทับวันเวลา/พิกัด', 9000],
+    ['โหมดอ่านง่ายสำหรับผู้พิการ', 7000],
+    ['อัปเกรด Basic → Standard', 'ส่วนต่างราคา + 5,000']
+  ],
+  termsOne: ['ชำระ 3 งวด: 50% เมื่อลงนาม · 40% เมื่อส่งมอบให้ทดสอบ · 10% เมื่อตรวจรับ', 'ระยะเวลา: Basic 3–4 สัปดาห์ · Standard 6–8 สัปดาห์ · Pro 10–12 สัปดาห์', 'ลูกค้าเป็นเจ้าของข้อมูลและได้รับซอร์สโค้ดเมื่อชำระครบ', 'ดูแลระบบ (MA) หลังหมดประกัน 24,000 บาท/ปี (ไม่บังคับ)', 'งานนอกขอบเขต 900 บาท/ชั่วโมง ประเมินก่อนเริ่มงาน'],
+  termsSub: ['ค่าติดตั้งชำระครั้งเดียว · ค่าบริการชำระล่วงหน้ารายเดือนหรือรายปี', 'สัญญาขั้นต่ำ 12 เดือน · ต่ออายุอัตโนมัติ แจ้งยกเลิกล่วงหน้า 30 วัน', 'ลูกค้าเป็นเจ้าของข้อมูล ส่งออกข้อมูลทั้งหมดได้ทุกเมื่อ (ซอฟต์แวร์เป็นสิทธิ์การใช้งาน)', 'อัปเกรดระดับได้ทันที คิดส่วนต่างตามวันที่เหลือ', 'ผู้ใช้สิทธิ์เกินกำหนด: +300 บาท/เดือน ต่อทุก 25 คน']
+};
+
+// ===== แสดงผล =====
+const $ = id => document.getElementById(id);
+const fmt = n => typeof n === 'number' ? n.toLocaleString('th-TH') : n;
+const thDate = iso => new Date(iso + 'T12:00:00+07:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' });
+const valid = new Date(new Date(P.date + 'T12:00:00+07:00').getTime() + P.validDays * 864e5).toISOString().slice(0, 10);
+const fill = s => s.replace(/\[([^\]]+)\]/g, '<span style="color:#8A5A00;background:#FDF3DC;border-radius:4px;padding:0 4px">[$1]</span>');
+$('seller').textContent = 'โดย ' + P.seller;
+$('dateLine').textContent = 'ฉบับวันที่ ' + thDate(P.date);
+$('validLine').textContent = thDate(valid);
+$('contact').innerHTML = fill(P.contact);
+
+$('oneTime').innerHTML = P.oneTime.map(p => `
+  <article class="plan ${p.hot ? 'hot' : ''}">
+    ${p.hot ? `<span class="badge">${p.hot}</span>` : '<span class="badge ghost">ซื้อขาด</span>'}
+    <h3>${p.name}</h3><div class="for">${p.for}</div>
+    <div class="price">${fmt(p.price)} <small>บาท</small></div>
+    <div class="sub">${p.limit}</div>
+    <ul>${p.feats.map(f => f.startsWith('plus:') ? `<li class="plus">${f.slice(5)}</li>` : `<li>${f}</li>`).join('')}</ul>
+    <div class="foot">${p.foot}</div>
+  </article>`).join('');
+
+$('subIncludes').innerHTML = '<b>ทุกระดับรวม:</b> ' + P.subIncludes.join(' · ');
+$('subs').innerHTML = P.subs.map(s => {
+  const yearly = s.monthly * P.annualMonthsPaid;
+  return `
+  <article class="plan ${s.hot ? 'hot' : ''}">
+    ${s.hot ? `<span class="badge">${s.hot}</span>` : '<span class="badge ghost">รายเดือน</span>'}
+    <h3>${s.name}</h3><div class="for">${s.for} · ${s.limit}</div>
+    <div class="price">${fmt(s.monthly)} <small>บาท/เดือน</small></div>
+    <div class="sub">หรือ <b>${fmt(yearly)}</b> บาท/ปี (จ่าย ${P.annualMonthsPaid} เดือน ใช้ 12 เดือน)</div>
+    <div class="foot">ค่าติดตั้งครั้งเดียว ${fmt(s.setup)} บาท · สัญญาขั้นต่ำ 12 เดือน</div>
+  </article>`;
+}).join('');
+
+const cell = v => v === true ? '<span class="y">✓</span>' : v === false ? '<span class="n">—</span>' : v;
+$('cmp').innerHTML = `<thead><tr><th>ฟังก์ชัน</th>${P.oneTime.map((p, i) => `<th class="${p.hot ? 'hot' : ''}">${p.name}<br><span class="muted" style="font-weight:500">${P.subs[i].name}</span></th>`).join('')}</tr></thead><tbody>` +
+  P.compare.map(r => r[0] === 'group'
+    ? `<tr class="group"><td colspan="4">${r[1]}</td></tr>`
+    : `<tr><td>${r[0]}</td>${r.slice(1).map((v, i) => `<td class="${P.oneTime[i].hot ? 'hot' : ''}">${cell(v)}</td>`).join('')}</tr>`).join('') + '</tbody>';
+
+// ค่าใช้จ่ายรวมระดับกลาง: ซื้อขาด + MA ปีถัดไป vs Subscription จ่ายรายปี
+const std = P.oneTime[1], bus = P.subs[1];
+const years = [1, 2, 3, 4, 5];
+const own = y => std.price + P.ma * Math.max(0, y - 1);
+const sub = y => bus.setup + bus.monthly * P.annualMonthsPaid * y;
+$('tco').innerHTML = `<thead><tr><th>ระยะเวลาใช้งาน</th>${years.map(y => `<th>${y} ปี</th>`).join('')}</tr></thead><tbody>
+  <tr><td>Standard ซื้อขาด + MA ตั้งแต่ปีที่ 2</td>${years.map(y => `<td class="mono">${fmt(own(y))}</td>`).join('')}</tr>
+  <tr><td>Business รายเดือน (จ่ายรายปี)</td>${years.map(y => `<td class="mono">${fmt(sub(y))}</td>`).join('')}</tr></tbody>`;
+const breakEven = Array.from({ length: 10 }, (_, i) => i + 1).find(y => own(y) < sub(y)); // ปีที่ซื้อขาดเริ่มถูกกว่า
+$('tcoNote').innerHTML = `<div>• <b>รายเดือน</b> เหมาะเมื่อต้องการเริ่มเร็ว ไม่ลงทุนก้อนใหญ่ ใช้งบดำเนินการ และอยากให้เราดูแลทั้งหมด</div>
+  <div>• <b>ซื้อขาด</b> คุ้มกว่าเมื่อใช้งานยาว${breakEven ? ` (ประมาณ ${breakEven} ปีขึ้นไป)` : ''} และต้องการเป็นเจ้าของซอร์สโค้ด</div>`;
+
+$('addons').innerHTML = `<thead><tr><th>รายการ</th><th>ราคา (บาท)</th></tr></thead><tbody>` +
+  P.addons.map(([t, p]) => `<tr><td>${t}</td><td class="mono">${fmt(p)}</td></tr>`).join('') + '</tbody>';
+$('termsOne').innerHTML = P.termsOne.map(t => `<li>${t}</li>`).join('');
+$('termsSub').innerHTML = P.termsSub.map(t => `<li>${t}</li>`).join('');
+</script>
+</body>
+</html>

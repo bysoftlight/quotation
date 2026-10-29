@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>softlight · ใบเสนอราคา</title>
+<meta name="description" content="โปรแกรมทำใบเสนอราคา HR Paper Mill โดย softlight — เลือกแพ็กเกจ กรอกข้อมูลลูกค้า แล้วพิมพ์เป็น PDF">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="img/favicon-64.png" type="image/png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Code:wght@400;500&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // ใส่ธีมก่อนหน้าแสดง (ไม่กะพริบขาวในโหมดมืด)
+  try { const t = localStorage.getItem('softlight-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="stylesheet" href="css/app.css?v=2.0.0">
+</head>
+<body data-tab="edit">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  <symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+</svg>
+
+<header class="topbar">
+  <a class="brand" href="./" aria-label="softlight · ใบเสนอราคา"><img src="img/softlight-logo.png" alt=""><b>softlight</b><small id="docLabel">ใบเสนอราคา</small></a>
+  <span class="save-state" id="savedState" aria-live="polite"><span>บันทึกแล้ว</span></span>
+  <button class="icon-btn" type="button" id="btnTheme" aria-label="ธีม: ตามเครื่อง" title="ธีม"><svg class="ic"><use href="#i-auto"/></svg></button>
+  <button class="icon-btn only-wide" type="button" id="btnSaved" aria-label="ใบที่บันทึก" title="ใบที่บันทึก"><svg class="ic"><use href="#i-folder"/></svg></button>
+  <button class="icon-btn" type="button" id="btnNew" aria-label="ใบใหม่" title="ใบใหม่"><svg class="ic"><use href="#i-file"/></svg></button>
+  <button class="icon-btn" type="button" id="btnCopy" aria-label="ทำสำเนาใบนี้" title="ทำสำเนา"><svg class="ic"><use href="#i-copy"/></svg></button>
+  <button class="btn btn-primary btn-print only-wide" type="button" id="btnPrint"><svg class="ic ic-16"><use href="#i-print"/></svg>พิมพ์ / PDF</button>
+  <button class="icon-btn only-narrow" type="button" id="btnPrint2" aria-label="พิมพ์ / บันทึกเป็น PDF" title="พิมพ์ / PDF"><svg class="ic"><use href="#i-print"/></svg></button>
+</header>
+
+<main class="page">
+  <section class="hero" aria-label="สรุปใบเสนอราคา">
+    <div>
+      <span class="eyebrow">ใบเสนอราคา · <span class="mono" id="heroNo"></span> <span class="badge-ex" id="heroBadge" hidden></span></span>
+      <h1 id="heroCustomer"></h1>
+      <p id="heroPlan"></p>
+    </div>
+    <div class="total-card" aria-live="polite">
+      <small>ยอดสุทธิ</small>
+      <b><span class="count" id="heroTotal">0.00</span><span class="unit">บาท</span></b>
+      <div class="total-rows" id="heroRows"></div>
+    </div>
+  </section>
+
+  <div class="layout">
+    <section class="editor" aria-label="แก้ไขใบเสนอราคา">
+      <details class="card" id="cardTpl" open>
+        <summary><span class="step-num">1</span><span class="sum-text"><b>เลือกแพ็กเกจ</b><small id="sumTpl">กดแล้วจะเติมรายการ เงื่อนไข และส่วนลดให้</small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <div class="card-body">
+          <div class="toggle-row">
+            <span class="hint">ระดับราคา</span>
+            <div class="seg" id="priceTier" role="group" aria-label="ระดับราคา"><button type="button" data-tier="regular" aria-pressed="true">ปกติ</button><button type="button" data-tier="exclusive" aria-pressed="false">Exclusive</button></div>
+          </div>
+          <div id="tplGrid"></div>
+          <p class="hint">ข้อมูลลูกค้าและผู้เสนอราคาคงเดิม · Exclusive แสดงราคาปกติแล้วหักเป็นส่วนลด</p>
+        </div>
+      </details>
+
+      <details class="card" id="cardCustomer" open>
+        <summary><span class="step-num">2</span><span class="sum-text"><b>ลูกค้า</b><small id="sumCustomer"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <div class="card-body">
+          <label class="f"><span>ชื่อบริษัท / ลูกค้า</span><input class="input" data-k="customer.name" autocomplete="organization"></label>
+          <label class="f"><span>ที่อยู่</span><textarea class="input" rows="2" data-k="customer.addr"></textarea></label>
+          <div class="grid2">
+            <label class="f"><span>เลขประจำตัวผู้เสียภาษี</span><input class="input mono" data-k="customer.taxId" inputmode="numeric"></label>
+            <label class="f"><span>เรียน (ผู้ติดต่อ)</span><input class="input" data-k="customer.attn"></label>
+          </div>
+          <label class="f"><span>เบอร์โทร / อีเมล</span><input class="input" data-k="customer.contact"></label>
+        </div>
+      </details>
+
+      <details class="card" id="cardDoc">
+        <summary><span class="step-num">3</span><span class="sum-text"><b>เอกสาร</b><small id="sumDoc"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <div class="card-body">
+          <div class="grid2">
+            <label class="f"><span>เลขที่</span><input class="input mono" data-k="no"></label>
+            <label class="f"><span>วันที่</span><input class="input" type="date" data-k="date"></label>
+            <label class="f"><span>ยืนราคา (วัน)</span><input class="input" type="number" min="1" inputmode="numeric" data-k="validDays"></label>
+            <label class="f"><span>ป้ายพิเศษ</span><input class="input" data-k="badge" placeholder="เช่น EXCLUSIVE (เว้นว่างได้)"></label>
+          </div>
+          <label class="f"><span>ชื่อโครงการ</span><input class="input" data-k="title"></label>
+          <label class="f"><span>คำอธิบาย</span><textarea class="input" rows="3" data-k="intro"></textarea></label>
+        </div>
+      </details>
+
+      <details class="card" id="cardItems">
+        <summary><span class="step-num">4</span><span class="sum-text"><b>รายการและส่วนลด</b><small id="sumItems"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <div class="card-body">
+          <div class="items" id="items"></div>
+          <button class="btn btn-outline" type="button" id="addItem"><svg class="ic ic-16"><use href="#i-plus"/></svg>เพิ่มรายการ</button>
+          <div class="grid2">
+            <label class="f"><span>ส่วนลด</span><input class="input" type="number" min="0" step="any" inputmode="decimal" data-k="discount" data-num></label>
+            <label class="f"><span>ส่วนลดเป็น</span><select class="input" data-k="discountType"><option value="amount">บาท</option><option value="percent">%</option></select></label>
+          </div>
+          <label class="f"><span>ชื่อส่วนลด</span><input class="input" data-k="discountLabel"></label>
+        </div>
+      </details>
+
+      <details class="card" id="cardMore">
+        <summary><span class="step-num">5</span><span class="sum-text"><b>หัวข้อเพิ่มเติมและเงื่อนไข</b><small id="sumMore"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <div class="card-body">
+          <label class="check"><input type="checkbox" data-k="showServices"><span>แสดง "บริการดูแลระบบ"</span></label>
+          <label class="f"><span>บริการ (บรรทัดละรายการ: ชื่อ | ราคา)</span><textarea class="input mono" rows="3" data-k="services"></textarea></label>
+          <label class="check"><input type="checkbox" data-k="showAddons"><span>แสดง "ฟังก์ชันเสริม"</span></label>
+          <label class="f"><span>ฟังก์ชันเสริม (บรรทัดละรายการ: ชื่อ | ระยะเวลา | ราคา)</span><textarea class="input mono" rows="5" data-k="addons"></textarea></label>
+          <label class="f"><span>เงื่อนไข (บรรทัดละข้อ)</span><textarea class="input" rows="7" data-k="terms"></textarea></label>
+        </div>
+      </details>
+
+      <details class="card" id="sellerCard">
+        <summary><span class="step-num">6</span><span class="sum-text"><b>ผู้เสนอราคาและภาษี</b><small id="sumSeller"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <div class="card-body">
+          <div class="grid2">
+            <label class="f"><span>ชื่อทีม</span><input class="input" data-k="seller.name"></label>
+            <label class="f"><span>ชื่อเจ้าของ / ผู้เสนอราคา</span><input class="input" data-k="seller.owner"></label>
+          </div>
+          <label class="f"><span>ที่อยู่</span><textarea class="input" rows="2" data-k="seller.addr"></textarea></label>
+          <div class="grid2">
+            <label class="f"><span>เลขประจำตัวผู้เสียภาษี</span><input class="input mono" data-k="seller.taxId" inputmode="numeric"></label>
+            <label class="f"><span>เบอร์โทร</span><input class="input" data-k="seller.phone" inputmode="tel"></label>
+          </div>
+          <label class="f"><span>อีเมล / LINE</span><input class="input" data-k="seller.email"></label>
+          <label class="check"><input type="checkbox" data-k="seller.vatReg"><span>จดทะเบียนภาษีมูลค่าเพิ่ม (คิด VAT 7%)</span></label>
+          <label class="check"><input type="checkbox" data-k="withholding"><span>แสดงหัก ณ ที่จ่าย 3% (ลูกค้านิติบุคคลหักเมื่อชำระ)</span></label>
+          <button class="btn btn-tonal" type="button" id="saveSeller"><svg class="ic ic-16"><use href="#i-check"/></svg>ใช้ข้อมูลนี้กับใบใหม่ทุกใบ</button>
+        </div>
+      </details>
+    </section>
+
+    <section class="preview" aria-label="ตัวอย่างใบเสนอราคา">
+      <div class="preview-head"><h2>ตัวอย่าง A4</h2><span class="zoom" id="zoomInfo"></span></div>
+      <article class="paper" id="paper"></article>
+    </section>
+
+    <section class="saved-panel card" aria-label="ใบที่บันทึก"><div class="card-body" id="savedPanelBody"></div></section>
+  </div>
+</main>
+
+<nav class="bottomnav" role="tablist" aria-label="มุมมอง">
+  <button class="nav-item" role="tab" type="button" data-tab="edit" aria-selected="true"><svg class="ic"><use href="#i-edit"/></svg>แก้ไข</button>
+  <button class="nav-item" role="tab" type="button" data-tab="preview" aria-selected="false"><svg class="ic"><use href="#i-eye"/></svg>ตัวอย่าง</button>
+  <button class="nav-item" role="tab" type="button" data-tab="saved" aria-selected="false"><svg class="ic"><use href="#i-folder"/></svg>ใบที่บันทึก</button>
+</nav>
+
+<dialog class="sheet" id="savedSheet" aria-labelledby="savedTitle">
+  <div class="sheet-head"><h2 id="savedTitle">ใบที่บันทึก</h2><button class="icon-btn" type="button" data-close aria-label="ปิด"><svg class="ic"><use href="#i-x"/></svg></button></div>
+  <div class="sheet-body" id="savedSheetBody"></div>
+</dialog>
+
+<dialog class="alert" id="askDialog" role="alertdialog" aria-labelledby="askTitle" aria-describedby="askText">
+  <h2 id="askTitle"></h2>
+  <p id="askText"></p>
+  <div class="alert-actions"><button class="btn btn-outline" type="button" id="askNo">ยกเลิก</button><button class="btn btn-primary" type="button" id="askYes">ตกลง</button></div>
+</dialog>
+
+<input type="file" accept=".json,application/json" id="fileImport" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/app.js?v=2.0.0"></script>
+</body>
+</html>
