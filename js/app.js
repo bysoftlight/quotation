@@ -295,7 +295,9 @@ function renderSummary() {
   setSum('cardDoc', 'sumDoc', `${d.no} · ${thDate(d.date)} · ยืนราคา ${d.validDays || 0} วัน`, !!(d.no && d.date));
   setSum('cardItems', 'sumItems', d.items.length ? `${d.items.length} รายการ · ${money0(t.sub)} บาท${t.disc ? ` · ลด ${money0(t.disc)}` : ''}` : 'ยังไม่มีรายการ', d.items.length > 0);
   const terms = String(d.terms || '').split('\n').filter(x => x.trim()).length;
-  setSum('cardMore', 'sumMore', [terms ? `เงื่อนไข ${terms} ข้อ` : 'ยังไม่มีเงื่อนไข', d.showServices && 'บริการดูแลระบบ', d.showAddons && 'ฟังก์ชันเสริม'].filter(Boolean).join(' · '), terms > 0);
+  const nS = splitRows(d.services).length, nA = splitRows(d.addons).length;
+  setSum('cardMore', 'sumMore', [`บริการ ${nS} รายการ${d.showServices ? '' : ' (ซ่อน)'}`, `ฟังก์ชันเสริม ${nA} รายการ${d.showAddons ? '' : ' (ซ่อน)'}`].join(' · '), (d.showServices && nS > 0) || (d.showAddons && nA > 0));
+  setSum('cardTerms', 'sumTerms', terms ? `${terms} ข้อ` : 'ยังไม่มีเงื่อนไข', terms > 0);
   const sellerOk = !!(s.name && s.addr && s.phone && s.email);
   setSum('sellerCard', 'sumSeller', sellerOk ? `${s.name}${s.owner ? ' · ' + s.owner : ''} · ${s.vatReg ? 'มี VAT' : 'ไม่มี VAT'}` : 'ยังกรอกไม่ครบ (ที่อยู่ เบอร์โทร อีเมล)', sellerOk);
 }
@@ -338,6 +340,7 @@ function fillForm() {
     if (el.type === 'checkbox') el.checked = !!v; else el.value = v == null ? '' : v;
   });
   renderItems();
+  loadLists();
   if (DOC.tpl) {
     TIER = DOC.tpl.split(':')[1] || 'regular';
     $('priceTier').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.tier === TIER)));
@@ -363,6 +366,45 @@ function renderItems() {
       </div>
     </div>`).join('') || '<p class="empty-items">ยังไม่มีรายการ — เลือกแพ็กเกจด้านบน หรือกด "เพิ่มรายการ"</p>';
 }
+
+// ===================== รายการย่อย: บริการ · ฟังก์ชันเสริม · เงื่อนไข =====================
+// เก็บในเอกสารเป็นข้อความบรรทัดละรายการ คั่นช่องด้วย " | " (เข้ากับข้อมูล/ไฟล์สำรองเดิม) แต่แก้ไขทีละแถวทีละช่อง
+const LIST_DEF = {
+  services: { label: 'บริการ', fields: [['ชื่อบริการ', 'name', 'เช่น ดูแลระบบรายปี (MA)'], ['ราคา', 'price', 'เช่น 19,000 / ปี']] },
+  addons: { label: 'ฟังก์ชันเสริม', fields: [['ชื่อฟังก์ชัน', 'name', 'เช่น แจ้งเตือนทาง LINE'], ['ระยะเวลา', 'dur', 'เช่น 2 สัปดาห์'], ['ราคา (บาท)', 'price', 'เช่น 12,000']] },
+  terms: { label: 'เงื่อนไข', fields: [['ข้อความ', 'text', 'พิมพ์เงื่อนไข']] }
+};
+const LISTS = { services: [], addons: [], terms: [] };
+function loadLists() {
+  LISTS.services = splitRows(DOC.services).map(r => [r[0] || '', r[1] || '']);
+  LISTS.addons = splitRows(DOC.addons).map(r => [r[0] || '', r[1] || '', r[2] || '']);
+  LISTS.terms = String(DOC.terms || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => [x]);
+  Object.keys(LIST_DEF).forEach(renderList);
+}
+function saveList(kind) {
+  const rows = LISTS[kind].filter(r => r.some(v => v.trim()));
+  DOC[kind] = kind === 'terms' ? rows.map(r => r[0].trim()).join('\n') : rows.map(r => r.map(v => v.trim()).join(' | ')).join('\n');
+}
+function renderList(kind) {
+  const def = LIST_DEF[kind], rows = LISTS[kind], box = $('list-' + kind), n = rows.length;
+  const tools = i => `<span class="row-tools">
+      <button class="icon-btn sm" type="button" data-act="up" aria-label="เลื่อน${def.label}ข้อ ${i + 1} ขึ้น" ${i ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-up"/></svg></button>
+      <button class="icon-btn sm" type="button" data-act="down" aria-label="เลื่อน${def.label}ข้อ ${i + 1} ลง" ${i < n - 1 ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-down"/></svg></button>
+      <button class="icon-btn sm is-bad" type="button" data-act="del" aria-label="ลบ${def.label}ข้อ ${i + 1}"><svg class="ic ic-16"><use href="#i-trash"/></svg></button></span>`;
+  if (kind === 'terms') {
+    box.innerHTML = rows.map((r, i) => `<li class="row row-term" data-i="${i}"><span class="row-no">${i + 1}</span>
+      <textarea class="input grow" rows="1" data-l="0" aria-label="เงื่อนไขข้อ ${i + 1}" placeholder="${def.fields[0][2]}">${esc(r[0])}</textarea>${tools(i)}</li>`).join('')
+      || `<li class="empty-items">ยังไม่มีเงื่อนไข</li>`;
+  } else {
+    box.innerHTML = rows.map((r, i) => `<div class="row row-${kind}" data-i="${i}">
+      <div class="row-head"><span class="row-no">${i + 1}</span>
+        <textarea class="input grow" rows="1" data-l="0" aria-label="${def.fields[0][0]} ข้อ ${i + 1}" placeholder="${def.fields[0][2]}">${esc(r[0])}</textarea>${tools(i)}</div>
+      <div class="row-meta">${def.fields.slice(1).map(([lab, , ph], j) => `<label class="f"><span>${lab}</span><input class="input" data-l="${j + 1}" value="${esc(r[j + 1])}" placeholder="${ph}"></label>`).join('')}</div>
+    </div>`).join('') || `<p class="empty-items">ยังไม่มี${def.label}</p>`;
+  }
+  box.querySelectorAll('textarea.grow').forEach(autoGrow);
+}
+function autoGrow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }
 
 let saveTimer = null;
 function changed() {
@@ -458,6 +500,54 @@ $('items').addEventListener('click', async e => {
   if (b.dataset.act === 'down' && i < it.length - 1) [it[i + 1], it[i]] = [it[i], it[i + 1]];
   renderItems(); changed();
 });
+// รายการย่อย: พิมพ์ / เพิ่ม / เลื่อน / ลบ
+document.querySelectorAll('.rows').forEach(box => {
+  const kind = box.id.replace('list-', '');
+  box.addEventListener('input', e => {
+    const el = e.target; if (el.dataset.l === undefined) return;
+    if (el.value.includes('|')) { const p = el.selectionStart; el.value = el.value.replace(/\|/g, '/'); el.setSelectionRange(p, p); } // | ใช้คั่นช่องในข้อมูล
+    if (el.value.includes('\n')) el.value = el.value.replace(/\n+/g, ' '); // ช่องละบรรทัดเดียว (ตัดบรรทัดเองตามความกว้าง)
+    LISTS[kind][+el.closest('.row').dataset.i][+el.dataset.l] = el.value;
+    if (el.classList.contains('grow')) autoGrow(el);
+    saveList(kind); changed();
+    e.stopPropagation();
+  });
+  // ชื่อบริการ/ฟังก์ชัน: Enter = ไปช่องถัดไป
+  if (kind !== 'terms') box.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.isComposing || !e.target.matches('textarea')) return;
+    e.preventDefault();
+    const next = e.target.closest('.row').querySelector('[data-l="1"]'); if (next) next.focus();
+  });
+  // เงื่อนไข: Enter = เพิ่มข้อใหม่ต่อจากข้อนี้
+  if (kind === 'terms') box.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || e.shiftKey || e.isComposing || !e.target.matches('textarea')) return;
+    e.preventDefault();
+    const i = +e.target.closest('.row').dataset.i;
+    LISTS.terms.splice(i + 1, 0, ['']); renderList('terms');
+    box.querySelector(`.row[data-i="${i + 1}"] textarea`).focus();
+  });
+  box.addEventListener('click', async e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const rows = LISTS[kind], i = +b.closest('.row').dataset.i;
+    if (b.dataset.act === 'del') {
+      if (rows[i].some(v => v.trim()) && !await ask(`ลบ${LIST_DEF[kind].label}ข้อ ${i + 1}?`, rows[i][0], 'ลบ', true)) return;
+      rows.splice(i, 1);
+    }
+    if (b.dataset.act === 'up' && i) [rows[i - 1], rows[i]] = [rows[i], rows[i - 1]];
+    if (b.dataset.act === 'down' && i < rows.length - 1) [rows[i + 1], rows[i]] = [rows[i], rows[i + 1]];
+    renderList(kind); saveList(kind); changed();
+    const keep = box.querySelector(`.row[data-i="${b.dataset.act === 'up' ? i - 1 : b.dataset.act === 'down' ? i + 1 : -1}"] [data-act="${b.dataset.act}"]`);
+    if (keep && !keep.disabled) keep.focus();
+  });
+});
+document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
+  const kind = b.dataset.add;
+  LISTS[kind].push(LIST_DEF[kind].fields.map(() => '')); renderList(kind);
+  const last = $('list-' + kind).lastElementChild, f = last.querySelector('[data-l="0"]');
+  f.focus(); last.scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
+}));
+window.addEventListener('resize', () => document.querySelectorAll('textarea.grow').forEach(autoGrow));
+
 $('addItem').addEventListener('click', () => {
   DOC.items.push({ t: '', d: '', qty: 1, unit: 'ชุด', price: 0 }); renderItems(); changed();
   const last = $('items').lastElementChild; last.querySelector('input').focus();

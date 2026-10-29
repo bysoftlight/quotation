@@ -15,7 +15,7 @@
   // ใส่ธีมก่อนหน้าแสดง (ไม่กะพริบขาวในโหมดมืด)
   try { const t = localStorage.getItem('softlight-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
-<link rel="stylesheet" href="css/app.css?v=2.0.0">
+<link rel="stylesheet" href="css/app.css?v=2.1.0">
 </head>
 <body data-tab="edit">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -119,18 +119,31 @@
       </details>
 
       <details class="card" id="cardMore">
-        <summary><span class="step-num">5</span><span class="sum-text"><b>หัวข้อเพิ่มเติมและเงื่อนไข</b><small id="sumMore"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <summary><span class="step-num">5</span><span class="sum-text"><b>บริการและฟังก์ชันเสริม</b><small id="sumMore"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
         <div class="card-body">
-          <label class="check"><input type="checkbox" data-k="showServices"><span>แสดง "บริการดูแลระบบ"</span></label>
-          <label class="f"><span>บริการ (บรรทัดละรายการ: ชื่อ | ราคา)</span><textarea class="input mono" rows="3" data-k="services"></textarea></label>
-          <label class="check"><input type="checkbox" data-k="showAddons"><span>แสดง "ฟังก์ชันเสริม"</span></label>
-          <label class="f"><span>ฟังก์ชันเสริม (บรรทัดละรายการ: ชื่อ | ระยะเวลา | ราคา)</span><textarea class="input mono" rows="5" data-k="addons"></textarea></label>
-          <label class="f"><span>เงื่อนไข (บรรทัดละข้อ)</span><textarea class="input" rows="7" data-k="terms"></textarea></label>
+          <section class="sub">
+            <div class="sub-head"><h3>บริการดูแลระบบ</h3><label class="switch"><input type="checkbox" data-k="showServices" role="switch"><span>แสดงในใบ</span></label></div>
+            <div class="rows" id="list-services"></div>
+            <button class="btn btn-chip add-row" type="button" data-add="services"><svg class="ic ic-16"><use href="#i-plus"/></svg>เพิ่มบริการ</button>
+          </section>
+          <section class="sub">
+            <div class="sub-head"><h3>ฟังก์ชันเสริม</h3><label class="switch"><input type="checkbox" data-k="showAddons" role="switch"><span>แสดงในใบ</span></label></div>
+            <div class="rows" id="list-addons"></div>
+            <button class="btn btn-chip add-row" type="button" data-add="addons"><svg class="ic ic-16"><use href="#i-plus"/></svg>เพิ่มฟังก์ชันเสริม</button>
+          </section>
+        </div>
+      </details>
+
+      <details class="card" id="cardTerms">
+        <summary><span class="step-num">6</span><span class="sum-text"><b>เงื่อนไข</b><small id="sumTerms"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <div class="card-body">
+          <ol class="rows rows-terms" id="list-terms"></ol>
+          <button class="btn btn-chip add-row" type="button" data-add="terms"><svg class="ic ic-16"><use href="#i-plus"/></svg>เพิ่มเงื่อนไข</button>
         </div>
       </details>
 
       <details class="card" id="sellerCard">
-        <summary><span class="step-num">6</span><span class="sum-text"><b>ผู้เสนอราคาและภาษี</b><small id="sumSeller"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
+        <summary><span class="step-num">7</span><span class="sum-text"><b>ผู้เสนอราคาและภาษี</b><small id="sumSeller"></small></span><svg class="ic chev"><use href="#i-down"/></svg></summary>
         <div class="card-body">
           <div class="grid2">
             <label class="f"><span>ชื่อทีม</span><input class="input" data-k="seller.name"></label>
@@ -178,6 +191,6 @@
 <input type="file" accept=".json,application/json" id="fileImport" hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/app.js?v=2.0.0"></script>
+<script src="js/app.js?v=2.1.0"></script>
 </body>
 </html>
