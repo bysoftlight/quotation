@@ -420,3 +420,15 @@ details.card, .saved-panel { min-width: 0; }
 .row-head .row-no { margin-top: 9px; }
 .row-head .row-tools { margin-top: 4px; }
 .row .input.grow { resize: none; overflow: hidden; line-height: 1.5; field-sizing: content; min-height: 44px; }
+
+/* รายละเอียดของรายการ (ทีละข้อ) */
+.item .bullets { gap: 6px; }
+.item .bullets .row { background: var(--field); border-color: transparent; padding: 6px; }
+.item .bullets .row-no { background: none; font-size: 18px; color: var(--muted); }
+/* การ์ดแพ็กเกจ: ราคาหลัก · ราคาปกติขีดฆ่า · ยอดปีแรก */
+.tpl { gap: 1px; }
+.tpl-price { font-size: 14px; font-weight: 500; white-space: nowrap; }
+.tpl-price small { font-size: 11px; opacity: .85; }
+.tpl-was { font-size: 12px; opacity: .6; }
+.tpl-total { font-size: 11px !important; opacity: .85; white-space: normal !important; line-height: 1.35; margin-top: 2px; }
+#exMode button { padding: 0 12px; font-size: 13px; }
