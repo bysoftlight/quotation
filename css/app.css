@@ -409,7 +409,7 @@ details.card, .saved-panel { min-width: 0; }
 /* จอแคบ: ปุ่ม ⋯ แทนปุ่มเลื่อน/ลบ แถวจึงสั้นลง (ไม่มีบรรทัดปุ่มแยก) */
 .row-more { display: none; }
 @media (max-width: 599px) {
-    .row-tools [data-act=up], .row-tools [data-act=down], .row-tools [data-act=del] { display: none; }
+    .row-tools :is([data-act=up], [data-act=down], [data-act=del], [data-bact=up], [data-bact=down], [data-bact=del]) { display: none; }
     .row-more { display: inline-grid; }
     .row-meta { padding-left: 0; }
     .row { padding: 8px 6px 10px 8px; }
