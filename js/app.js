@@ -437,7 +437,8 @@ function renderList(kind) {
   const tools = i => `<span class="row-tools">
       <button class="icon-btn sm" type="button" data-act="up" aria-label="เลื่อน${def.label}ข้อ ${i + 1} ขึ้น" ${i ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-up"/></svg></button>
       <button class="icon-btn sm" type="button" data-act="down" aria-label="เลื่อน${def.label}ข้อ ${i + 1} ลง" ${i < n - 1 ? '' : 'disabled'}><svg class="ic ic-16"><use href="#i-down"/></svg></button>
-      <button class="icon-btn sm is-bad" type="button" data-act="del" aria-label="ลบ${def.label}ข้อ ${i + 1}"><svg class="ic ic-16"><use href="#i-trash"/></svg></button></span>`;
+      <button class="icon-btn sm is-bad" type="button" data-act="del" aria-label="ลบ${def.label}ข้อ ${i + 1}"><svg class="ic ic-16"><use href="#i-trash"/></svg></button>
+      <button class="icon-btn sm row-more" type="button" data-act="menu" aria-haspopup="menu" aria-expanded="false" aria-label="จัดการ${def.label}ข้อ ${i + 1}"><svg class="ic ic-16"><use href="#i-more"/></svg></button></span>`;
   if (kind === 'terms') {
     box.innerHTML = rows.map((r, i) => `<li class="row row-term" data-i="${i}"><span class="row-no">${i + 1}</span>
       <textarea class="input grow" rows="1" data-l="0" aria-label="เงื่อนไขข้อ ${i + 1}" placeholder="${def.fields[0][2]}">${esc(r[0])}</textarea>${tools(i)}</li>`).join('')
@@ -600,20 +601,65 @@ document.querySelectorAll('.rows').forEach(box => {
     LISTS.terms.splice(i + 1, 0, ['']); renderList('terms');
     box.querySelector(`.row[data-i="${i + 1}"] textarea`).focus();
   });
-  box.addEventListener('click', async e => {
+  box.addEventListener('click', e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
-    const rows = LISTS[kind], i = +b.closest('.row').dataset.i;
-    if (b.dataset.act === 'del') {
-      if (rows[i].some(v => v.trim()) && !await ask(`ลบ${LIST_DEF[kind].label}ข้อ ${i + 1}?`, rows[i][0], 'ลบ', true)) return;
-      rows.splice(i, 1);
-    }
-    if (b.dataset.act === 'up' && i) [rows[i - 1], rows[i]] = [rows[i], rows[i - 1]];
-    if (b.dataset.act === 'down' && i < rows.length - 1) [rows[i + 1], rows[i]] = [rows[i], rows[i + 1]];
-    renderList(kind); saveList(kind); changed();
-    const keep = box.querySelector(`.row[data-i="${b.dataset.act === 'up' ? i - 1 : b.dataset.act === 'down' ? i + 1 : -1}"] [data-act="${b.dataset.act}"]`);
-    if (keep && !keep.disabled) keep.focus();
+    const i = +b.closest('.row').dataset.i;
+    if (b.dataset.act === 'menu') openRowMenu(kind, i, b); else rowAct(kind, i, b.dataset.act);
   });
 });
+// เลื่อน / ลบ หนึ่งแถว แล้วให้โฟกัสตามแถวที่ย้ายไป (กดซ้ำต่อได้)
+async function rowAct(kind, i, act) {
+  const rows = LISTS[kind], box = $('list-' + kind);
+  if (act === 'del') {
+    if (rows[i].some(v => v.trim()) && !await ask(`ลบ${LIST_DEF[kind].label}ข้อ ${i + 1}?`, rows[i][0], 'ลบ', true)) return;
+    rows.splice(i, 1);
+  }
+  if (act === 'up' && i) [rows[i - 1], rows[i]] = [rows[i], rows[i - 1]];
+  if (act === 'down' && i < rows.length - 1) [rows[i + 1], rows[i]] = [rows[i], rows[i + 1]];
+  renderList(kind); saveList(kind); changed();
+  const to = act === 'up' ? i - 1 : act === 'down' ? i + 1 : -1, row = box.querySelector(`.row[data-i="${to}"]`);
+  if (!row) return;
+  const btn = [row.querySelector(`[data-act="${act}"]`), row.querySelector('[data-act="menu"]')].find(x => x && x.offsetParent && !x.disabled);
+  if (btn) btn.focus();
+  row.classList.add('is-moved'); setTimeout(() => row.classList.remove('is-moved'), 600);
+}
+// จอแคบ: ปุ่ม ⋯ เปิดเมนู เลื่อนขึ้น / เลื่อนลง / ลบ (แทนปุ่ม 3 ปุ่มที่กินที่)
+let MENU = null;
+function openRowMenu(kind, i, btn) {
+  const m = $('rowMenu'), n = LISTS[kind].length;
+  if (MENU && MENU.btn === btn) return closeRowMenu();
+  closeRowMenu();
+  MENU = { kind, i, btn };
+  m.querySelector('[data-menu=up]').disabled = i === 0;
+  m.querySelector('[data-menu=down]').disabled = i >= n - 1;
+  m.hidden = false;
+  const r = btn.getBoundingClientRect(), mh = m.offsetHeight, mw = m.offsetWidth;
+  const below = r.bottom + 6 + mh < window.innerHeight - 70;
+  m.style.top = (below ? r.bottom + 6 : Math.max(8, r.top - 6 - mh)) + 'px';
+  m.style.left = Math.max(8, Math.min(window.innerWidth - mw - 8, r.right - mw)) + 'px';
+  btn.setAttribute('aria-expanded', 'true');
+  (m.querySelector('[data-menu]:not(:disabled)')).focus();
+}
+function closeRowMenu(refocus) {
+  if (!MENU) return;
+  $('rowMenu').hidden = true;
+  MENU.btn.setAttribute('aria-expanded', 'false');
+  if (refocus && MENU.btn.isConnected) MENU.btn.focus();
+  MENU = null;
+}
+$('rowMenu').addEventListener('click', e => {
+  const b = e.target.closest('[data-menu]'); if (!b || !MENU) return;
+  const { kind, i } = MENU; closeRowMenu();
+  rowAct(kind, i, b.dataset.menu);
+});
+$('rowMenu').addEventListener('keydown', e => {
+  const items = [...$('rowMenu').querySelectorAll('[data-menu]:not(:disabled)')], k = items.indexOf(document.activeElement);
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); items[(k + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus(); }
+  if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); closeRowMenu(true); }
+});
+document.addEventListener('pointerdown', e => { if (MENU && !e.target.closest('#rowMenu') && !e.target.closest('[data-act=menu]')) closeRowMenu(); });
+window.addEventListener('scroll', () => closeRowMenu(), { passive: true });
+window.addEventListener('resize', () => closeRowMenu());
 document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
   const kind = b.dataset.add;
   LISTS[kind].push(LIST_DEF[kind].fields.map(() => '')); renderList(kind);
