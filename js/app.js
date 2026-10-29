@@ -507,8 +507,9 @@ async function savedAction(e) {
 }
 
 function openDoc(doc) { DOC = doc; S.current = doc.id; fillForm(); render(); renderSaved(); }
-function newDoc() { openDoc(blankDoc()); changed(); $('cardTpl').open = true; $('cardCustomer').open = true; toast(`สร้างใบใหม่ ${DOC.no}`); }
+function newDoc() { track('quote_new'); openDoc(blankDoc()); changed(); $('cardTpl').open = true; $('cardCustomer').open = true; toast(`สร้างใบใหม่ ${DOC.no}`); }
 function exportData() {
+  track('data_export', { v: Object.keys(S.docs).length });
   const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `softlight-quotes-${todayIso()}.json`;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -516,7 +517,12 @@ function exportData() {
 }
 
 // ===================== มุมมองบนมือถือ (แก้ไข / ตัวอย่าง / ใบที่บันทึก) =====================
+// สถิติการใช้งาน (js/analytics.js ของ HR Paper Mill) — ไม่มีก็ไม่เป็นไร
+const track = (e, o) => { if (typeof Analytics !== 'undefined') Analytics.track(e, o); };
+const trackPage = p => { if (typeof Analytics !== 'undefined') Analytics.page(p); };
+
 function setTab(tab) {
+  trackPage(tab);
   document.body.dataset.tab = tab;
   document.querySelectorAll('.bottomnav [data-tab]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.tab === tab)));
   window.scrollTo(0, 0);
@@ -700,17 +706,19 @@ $('tplGrid').addEventListener('click', async e => {
   const b = e.target.closest('[data-tpl]'); if (!b) return;
   if (DOC.items.length && !await ask('ใช้แพ็กเกจนี้?', 'รายการ เงื่อนไข และส่วนลดของใบนี้จะถูกแทนที่ (ข้อมูลลูกค้าและผู้เสนอราคาคงเดิม)', 'ใช้แพ็กเกจนี้')) return;
   applyTemplate(b.dataset.tpl, TIER); fillForm(); changed();
+  track('template_apply', { l: b.dataset.tpl + ':' + TIER });
   const t = TEMPLATES.find(x => x.key === b.dataset.tpl);
   toast(`ใช้แพ็กเกจ ${t.label} (${t.note}) แล้ว`);
 });
 
 $('btnNew').addEventListener('click', newDoc);
 $('btnCopy').addEventListener('click', () => {
+  track('quote_copy');
   const copy = JSON.parse(JSON.stringify(DOC));
   copy.id = uid(); copy.date = todayIso(); copy.no = nextNo(copy.date); copy.updatedAt = Date.now();
   openDoc(copy); changed(); toast(`ทำสำเนาเป็น ${copy.no} แล้ว`);
 });
-const doPrint = () => { fitPaper(); window.print(); };
+const doPrint = () => { track('print', { v: totals(DOC).grand }); fitPaper(); window.print(); };
 $('btnPrint').addEventListener('click', doPrint);
 $('btnPrint2').addEventListener('click', doPrint);
 $('saveSeller').addEventListener('click', () => { S.seller = Object.assign({}, DOC.seller); saveStore(); toast('บันทึกแล้ว — ใบใหม่จะใช้ข้อมูลผู้เสนอราคานี้'); });
@@ -726,6 +734,7 @@ $('fileImport').addEventListener('change', async e => {
     Object.assign(S.docs, data.docs);
     if (data.seller) S.seller = data.seller;
     Object.entries(data.seq || {}).forEach(([y, n]) => { S.seq[y] = Math.max(S.seq[y] || 0, n); });
+    track('data_import', { v: Object.keys(data.docs).length });
     saveStore(); renderSaved(); toast(`นำเข้า ${Object.keys(data.docs).length} ใบแล้ว`);
   } catch (err) { toast('เปิดไฟล์ไม่ได้: ' + err.message); }
   e.target.value = '';
@@ -735,6 +744,7 @@ $('btnTheme').addEventListener('click', () => {
   const cur = getTheme(), next = THEMES[(THEMES.findIndex(x => x[0] === cur) + 1) % THEMES.length][0];
   try { localStorage.setItem('softlight-theme', next); } catch (e) {}
   applyTheme(next);
+  track('theme', { l: next });
   toast('ธีม: ' + THEMES.find(x => x[0] === next)[1]);
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(getTheme()));
@@ -743,6 +753,7 @@ window.addEventListener('pagehide', () => { if (saveTimer) { clearTimeout(saveTi
 
 // ----- เริ่มต้น -----
 (function init() {
+  if (typeof Analytics !== 'undefined') { Analytics.init({ app: 'quote', role: 'seller' }); trackPage(document.body.dataset.tab || 'edit'); }
   applyTheme(getTheme());
   let doc = S.current && S.docs[S.current];
   if (!doc) { doc = blankDoc(); DOC = doc; applyTemplate('standard', 'regular'); S.docs[doc.id] = doc; S.current = doc.id; saveStore(); }
