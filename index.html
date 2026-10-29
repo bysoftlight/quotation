@@ -15,7 +15,7 @@
   // ใส่ธีมก่อนหน้าแสดง (ไม่กะพริบขาวในโหมดมืด)
   try { const t = localStorage.getItem('softlight-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
-<link rel="stylesheet" href="css/app.css?v=2.2.1">
+<link rel="stylesheet" href="css/app.css?v=2.3.0">
 </head>
 <body data-tab="edit">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -201,6 +201,9 @@
 <input type="file" accept=".json,application/json" id="fileImport" hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="js/app.js?v=2.2.1"></script>
+<!-- สถิติการใช้งาน (ไม่ระบุตัวตน) ใช้ระบบเดียวกับ HR Paper Mill — ไฟล์อยู่ในโดเมนเดียวกัน; ถ้าโหลดไม่ได้ โปรแกรมยังทำงานปกติ -->
+<script src="/hr-paper-mill/js/config.js" defer></script>
+<script src="/hr-paper-mill/js/analytics.js" defer></script>
+<script src="js/app.js?v=2.3.0" defer></script>
 </body>
 </html>
