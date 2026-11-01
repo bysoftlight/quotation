@@ -446,3 +446,8 @@ details.card, .saved-panel { min-width: 0; }
 .tpl-was { font-size: 12px; opacity: .6; }
 .tpl-total { font-size: 11px !important; opacity: .85; white-space: normal !important; line-height: 1.35; margin-top: 2px; }
 #exMode button { padding: 0 12px; font-size: 13px; }
+
+/* แจ้งย้ายไประบบใหม่ */
+.moved { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 16px; padding: 14px 18px; border-radius: var(--r-md); background: var(--accent-soft); color: var(--on-accent-soft); text-decoration: none; }
+.moved b { font-weight: 600; } .moved span { flex: 1 1 18em; font-size: 14px; } .moved em { font-style: normal; font-weight: 600; white-space: nowrap; }
+@media print { .moved { display: none !important; } }
