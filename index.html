@@ -15,7 +15,7 @@
   // ใส่ธีมก่อนหน้าแสดง (ไม่กะพริบขาวในโหมดมืด)
   try { const t = localStorage.getItem('softlight-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
-<link rel="stylesheet" href="css/app.css?v=2.3.0">
+<link rel="stylesheet" href="css/app.css?v=2.3.1">
 </head>
 <body data-tab="edit">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -52,6 +52,7 @@
 </header>
 
 <main class="page">
+  <a class="moved" href="/finance/"><b>ย้ายไป softlight Finance แล้ว</b><span>ใบเสนอราคา ใบแจ้งหนี้ ใบเสร็จ Subscription และสรุปภาษีในที่เดียว · ใบเสนอราคาในเครื่องนี้นำเข้าได้ในคลิกเดียว</span><em>เปิด →</em></a>
   <section class="hero" aria-label="สรุปใบเสนอราคา">
     <div>
       <span class="eyebrow">ใบเสนอราคา · <span class="mono" id="heroNo"></span> <span class="badge-ex" id="heroBadge" hidden></span></span>
@@ -204,6 +205,6 @@
 <!-- สถิติการใช้งาน (ไม่ระบุตัวตน) ใช้ระบบเดียวกับ HR Paper Mill — ไฟล์อยู่ในโดเมนเดียวกัน; ถ้าโหลดไม่ได้ โปรแกรมยังทำงานปกติ -->
 <script src="/hr-paper-mill/js/config.js" defer></script>
 <script src="/hr-paper-mill/js/analytics.js" defer></script>
-<script src="js/app.js?v=2.3.0" defer></script>
+<script src="js/app.js?v=2.3.1" defer></script>
 </body>
 </html>
