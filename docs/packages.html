@@ -92,6 +92,16 @@
   .toolbar button { border-radius: 999px; font-weight: 500; padding: 10px 22px; }
   .totals tr.grand td { border-top: 0; background: #E8F0FE; color: #041E49; }
   .totals tr.grand td:first-child { border-radius: 12px 0 0 12px; } .totals tr.grand td:last-child { border-radius: 0 12px 12px 0; }
+
+  /* มือถือ: หัวเอกสารเรียงลงล่าง · ตารางกว้างเลื่อนได้ในตัว ไม่ดันหน้าล้นจอ */
+  @media screen and (max-width: 560px) {
+    header.top { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .title, .doc-title { text-align: left; }
+    .title h1, .doc-title h1 { font-size: 21pt; }
+    table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    th, td { padding-left: 6px !important; padding-right: 6px !important; }
+    .num, td.mono, th.num { white-space: nowrap; }
+  }
 </style>
 </head>
 <body>
