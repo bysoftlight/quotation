@@ -451,3 +451,6 @@ details.card, .saved-panel { min-width: 0; }
 .moved { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 16px; padding: 14px 18px; border-radius: var(--r-md); background: var(--accent-soft); color: var(--on-accent-soft); text-decoration: none; }
 .moved b { font-weight: 600; } .moved span { flex: 1 1 18em; font-size: 14px; } .moved em { font-style: normal; font-weight: 600; white-space: nowrap; }
 @media print { .moved { display: none !important; } }
+
+/* จอแคบมาก: แสดงโลโก้อย่างเดียว ไม่ให้ชื่อชนปุ่มด้านขวา */
+@media (max-width: 360px) { .brand b { display: none; } .topbar .icon-btn { margin-left: 0; } }
